@@ -7,44 +7,39 @@ import time
 
 from msg import *
 
-c = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 rand = random.Random()
 
 
-def client(ip, port):
-    c.connect((ip, port))
-    name = 'Hallo   '.encode('ascii')
-    c.sendall(name)
+class Client:
+    def __init__(self, ip, port):
+        self.c = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.c.connect((ip, port))
 
-    t_send = threading.Thread(target=clientSend)
-    t_send.start()
+    def start_client(self):
 
-    t_receive = threading.Thread(target=clientReceive)
-    t_receive.start()
+        name = str(rand.randint(1, 99999999))
+        send_msg(self.c, name)
+        t_receive = threading.Thread(target=self.clientPlay)
+        t_receive.start()
 
+    def clientPlay(self):
+        try:
+            while True:
+                rnd, msg = receive_msg(self.c, 10)
+                print(msg)
+                print(rnd)
+                msg = msg.decode('ascii')
+                if msg.strip() == 'start':
+                    print(f'start {datetime.datetime.now()}')
+                    time.sleep(rand.random() * 3)
+                    msg = str(rand.randint(0, 100))
+                    send_msg(self.c, msg)
+                else:
+                    print(f'winner round {rnd}: {msg}')
 
-def clientReceive():
-    try:
-        while True:
-            msg = receive_msg(c, 5)
-            if msg.decode('ascii') == 'start':
-                print(f'start {datetime.datetime.now()}')
-    except:
-        print("Chat geschlossen")
-        sys.exit()
-
-
-# Methode zum Versenden von Nachrichten
-def clientSend():
-    while True:
-        msg = input()
-        new_msg = msg.encode('ascii')
-        c.sendall(new_msg)
-        if msg.lower() == 'stop':
-            print("Chat verlassen")
-            c.close()
-            break
-
+        except  Exception as e:
+            print(f'Chat geschlossen {e}')
+            sys.exit()
 
 def main():
     if len(sys.argv) != 3:
@@ -52,7 +47,8 @@ def main():
         sys.exit()
     ip = sys.argv[1]
     port = int(sys.argv[2])
-    client(ip, port)
+    c = Client(ip, port)
+    c.start_client()
 
 
 if __name__ == '__main__':
