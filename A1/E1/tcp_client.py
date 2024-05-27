@@ -15,20 +15,19 @@ class Client:
         self.c = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.c.connect((ip, port))
 
-    def start_client(self):
+    def start_client(self, id):
 
-        name = str(rand.randint(1, 99999999))
+        name = f'Cl{id}'
         send_msg(self.c, name)
-        t_receive = threading.Thread(target=self.clientPlay)
+        t_receive = threading.Thread(target=self.client_play)
         t_receive.start()
 
-    def clientPlay(self):
+    def client_play(self):
         try:
             while True:
                 rnd, msg = receive_msg(self.c, 10)
                 print(msg)
                 print(rnd)
-                msg = msg.decode('ascii')
                 if msg.strip() == 'start':
                     print(f'start {datetime.datetime.now()}')
                     time.sleep(rand.random() * 3)
@@ -38,8 +37,9 @@ class Client:
                     print(f'winner round {rnd}: {msg}')
 
         except  Exception as e:
-            print(f'Chat geschlossen {e}')
+            print(f'Chat geschlossen: {e}')
             sys.exit()
+
 
 def main():
     if len(sys.argv) != 3:
@@ -48,7 +48,7 @@ def main():
     ip = sys.argv[1]
     port = int(sys.argv[2])
     c = Client(ip, port)
-    c.start_client()
+    c.start_client(1)
 
 
 if __name__ == '__main__':
