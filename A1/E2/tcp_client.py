@@ -26,19 +26,21 @@ class Client:
         try:
             while True:
                 rnd, msg = receive_msg(self.c, 10)
-                print(msg)
-                print(rnd)
                 if msg.strip() == 'start':
-                    print(f'start {datetime.datetime.now()}')
-                    time.sleep(rand.random() * 3)
-                    msg = str(rand.randint(0, 100))
-                    send_msg(self.c, msg)
+                    print(f'start round {rnd} at {datetime.datetime.now()}')
+                    roll = threading.Thread(target=self.roll_dice)
+                    roll.start()
                 else:
                     print(f'winner round {rnd}: {msg}')
 
         except  Exception as e:
             print(f'Chat geschlossen: {e}')
             sys.exit()
+
+    def roll_dice(self):
+        time.sleep(rand.random() * 3)
+        msg = str(rand.randint(0, 100))
+        send_msg(self.c, msg)
 
 
 def main():

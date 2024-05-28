@@ -3,7 +3,7 @@ import sys
 import threading
 import time
 import log as lg
-from A1.E1.game import Game
+from A1.E2.game import Game
 
 from msg import receive_msg, send_msg
 
@@ -95,8 +95,8 @@ class Server:
                     print(e)
                 finally:
                     self.log.create_log()
+                    self.lock.release()
                     sys.exit()
-                self.lock.release()
 
 
 def main():
