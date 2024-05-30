@@ -61,7 +61,7 @@ def plot_time_data(servers, minutes, base_filename='protocol'):
 
     plt.xlabel('Time Passed (s)')
     plt.ylabel('Offset (s)')
-    plt.title(f'Local time difference compared to NTP Server time over {minutes} minutes')
+    plt.title(f'Offset between NTP Server and local time over {minutes} minutes')
     plt.legend()
     plt.grid(True)
     plt.tight_layout()
