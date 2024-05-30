@@ -6,7 +6,7 @@ import pandas as pd
 from matplotlib import pyplot as plt
 
 
-def get_ntp_time(server='pool.ntp.org'):
+def get_ntp(server='pool.ntp.org'):
     client = ntplib.NTPClient()
     response = client.request(server, version=3)
     return response
@@ -20,7 +20,7 @@ def collect_time_data(servers, duration_seconds, interval_seconds):
         time_passed = int(math.floor(time() - start_time))
         for server in servers:
             try:
-                response = get_ntp_time(server)
+                response = get_ntp(server)
                 time_difference = response.dest_time - response.tx_time
 
                 data[server].append({
@@ -57,10 +57,10 @@ def plot_time_data(servers, minutes, base_filename='protocol'):
         filename = f"{base_filename}_{server.replace('.', '_')}.csv"
         df = pd.read_csv(filename)
 
-        plt.plot(df['Time Passed'], df['Time Difference (s)'], marker='o', linestyle='-', label=server)
+        plt.plot(df['Time Passed'], df['Offset'], marker='o', linestyle='-', label=server)
 
     plt.xlabel('Time Passed (s)')
-    plt.ylabel('Time Difference (s)')
+    plt.ylabel('Offset (s)')
     plt.title(f'Local time difference compared to NTP Server time over {minutes} minutes')
     plt.legend()
     plt.grid(True)
@@ -70,10 +70,20 @@ def plot_time_data(servers, minutes, base_filename='protocol'):
     plt.show()
 
 
+def get_stratum(servers):
+    stratum = {}
+    for server in servers:
+        stratum[server] = get_ntp(server).stratum
+
+    return stratum
+
+
 def main():
     servers = ['pool.ntp.org', 'ptbtime1.ptb.de', 'time.windows.com', 'time-f-wwv.nist.gov']
-    duration = 60
-    interval = 10
+    duration = 3600
+    interval = 30
+    stratum = get_stratum(servers)
+    print(stratum)
     data = collect_time_data(servers, duration, interval)
     save_to_csv(data)
     plot_time_data(servers, str(duration / 60))
@@ -81,4 +91,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
