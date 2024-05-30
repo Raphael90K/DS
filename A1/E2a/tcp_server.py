@@ -1,42 +1,45 @@
+import os
 import socket
 import sys
 import threading
 import time
 import log as lg
-from A1.E2.game import Game
+from A1.E2a.game import Game
 
 from msg import receive_msg, send_msg
 
 
 class Server:
-    def __init__(self):
+    def __init__(self, DAUER_DER_RUNDE):
         self.connected = []
         self.names = []
         self.log = lg.Log()
         self.lock = threading.Lock()
         self.game = Game()
+        self.DAUER_DER_RUNDE = DAUER_DER_RUNDE
 
     def serve(self, ip, port):
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s_sock:
             s_sock.bind((ip, port))
             s_sock.listen()
 
-            rnd = threading.Thread(target=self.play_round)
+            rnd = threading.Thread(target=self.play_round, daemon=True)
             rnd.start()
 
-            com = threading.Thread(target=self.command)
+            stop_flag = threading.Event()
+            com = threading.Thread(target=self.command, args=(stop_flag, s_sock), daemon=True)
             com.start()
 
-            while True:
+            while not stop_flag.is_set():
                 c_sock, c_address = s_sock.accept()
                 self.lock.acquire()
-                rnd, name = receive_msg(c_sock, 10)
+                name, clock = receive_msg(c_sock, 10)
                 welcome = '<{0}> connected with IP <{1}> on Port <{2}>'.format(name, c_address[0], c_address[1])
                 print(welcome)
                 self.connected.append(c_sock)
-                self.names.append(name)
+                self.names.append(name.strip())
 
-                t = threading.Thread(target=self.serve_client, args=(c_sock, name))
+                t = threading.Thread(target=self.serve_client, args=(c_sock, name), daemon=True)
                 t.start()
                 self.lock.release()
 
@@ -44,23 +47,31 @@ class Server:
         while True:
             self.lock.acquire()
             if len(self.connected) != 0:
+                # round start
                 self.game.start_round(self.log, self.names)
-                self.server_send('start', self.game.rnd)
+                self.server_send('start')
                 print(f'round: {self.game.rnd} - connected: {len(self.connected)} - start sended')
                 self.lock.release()
-                time.sleep(2)
+                time.sleep(self.DAUER_DER_RUNDE)
+
+                # round end
                 self.lock.acquire()
                 winner = self.game.end_round(self.log)
-                self.server_send(winner[0], self.game.rnd)
+                self.server_send('stop')
                 print(f'round: {self.game.rnd} - connected: {len(self.connected)} - end send')
+
+                # waiting for next round
+                time.sleep(2 * self.DAUER_DER_RUNDE)
+                self.game.await_next_round(self.log)
+                self.log.refresh()
             self.lock.release()
 
     def serve_client(self, c_sock, name):
         while True:
             try:
-                rnd, msg = receive_msg(c_sock, 10)
-                score = int(msg.strip())
-                self.game.add_throw(name, score)
+                msg, clock = receive_msg(c_sock, 10)
+                throw = int(msg.strip())
+                self.game.add_throw(name, throw)
             except Exception as e:
                 print(e)
                 if c_sock in self.connected:
@@ -70,10 +81,10 @@ class Server:
                 c_sock.close()
                 break
 
-    def server_send(self, msg, rnd):
+    def server_send(self, msg, clock=0):
         for client in self.connected:
             try:
-                send_msg(client, msg, rnd=rnd)
+                send_msg(client, msg, clock=clock)
             except Exception as e:
                 i = self.connected.index(client)
                 self.connected.remove(client)
@@ -81,7 +92,7 @@ class Server:
                 client.close()
                 print(f'error occured, client {client} removed')
 
-    def command(self):
+    def command(self, stop_flag: threading.Event, s_sock: socket.socket):
         while True:
             if input() == 'stop':
                 self.lock.acquire()
@@ -96,16 +107,17 @@ class Server:
                 finally:
                     self.log.create_log()
                     self.lock.release()
-                    sys.exit()
-
+                    print('server beendet')
+                    stop_flag.set()
+                    os._exit(0)
 
 
 def main():
-    if len(sys.argv) != 2:
-        print("Usage for Server: \"{0}  <port>\"".format(sys.argv[0]))
+    if len(sys.argv) != 3:
+        print("Usage for Server: \"{0}  <port> <DAUER_DER_RUNDE>\"".format(sys.argv[0]))
         sys.exit()
     port = int(sys.argv[1])
-    server = Server()
+    server = Server(float(sys.argv[2]))
     server.serve('127.0.0.1', port)
 
 
