@@ -17,6 +17,7 @@ class Server:
         self.lock = threading.Lock()
         self.game = Game()
         self.DAUER_DER_RUNDE = DAUER_DER_RUNDE
+        self.WARTEZEIT = 2
 
     def serve(self, ip, port):
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s_sock:
@@ -61,7 +62,7 @@ class Server:
                 print(f'round: {self.game.rnd} - connected: {len(self.connected)} - end send')
 
                 # waiting for next round
-                time.sleep(2 * self.DAUER_DER_RUNDE)
+                time.sleep(self.WARTEZEIT)
                 self.game.await_next_round(self.log)
                 self.log.refresh()
             self.lock.release()

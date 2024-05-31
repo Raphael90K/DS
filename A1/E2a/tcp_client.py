@@ -59,7 +59,7 @@ def main():
     if len(sys.argv) != 4:
         print("Usage for Client: \"{0}  <ip> <port> <SPIELER_LATENZ>\"".format(sys.argv[0]))
         sys.exit()
-    ip = '79.214.189.112'
+    ip = sys.argv[1]
     port = int(sys.argv[2])
     c = Client(ip, port, float(sys.argv[3]))
     c.start_client(1)
