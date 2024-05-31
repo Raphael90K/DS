@@ -5,6 +5,7 @@ import sys
 import threading
 import time
 
+from logial_clock import LogicalClock
 from msg import *
 
 rand = random.Random()
@@ -16,10 +17,12 @@ class Client:
         self.c.connect((ip, port))
         self.LATENZ = SPIELER_LATENZ
 
+        self.clock = LogicalClock()
+
     def start_client(self, id):
 
         name = f'Cl{id}'
-        send_msg(self.c, name)
+        self.clock.send_event(send_msg, self.c, name)
         t_receive = threading.Thread(target=self.client_play)
         t_receive.start()
 
@@ -27,7 +30,7 @@ class Client:
         try:
             stops = []
             while True:
-                msg, _ = receive_msg(self.c, 10)
+                msg = self.clock.receive_event(receive_msg, self.c)
                 stop_received = threading.Event()
                 stops.append(stop_received)
                 if msg.strip() == 'stop':
@@ -50,7 +53,7 @@ class Client:
         WURF = str(rand.randint(0, 100))
         print(f' {threading.current_thread()} : {stop_received.is_set()}')
         if not stop_received.is_set():
-            send_msg(self.c, WURF)
+            self.clock.send_event(send_msg, self.c, WURF)
         else:
             print('too late')
 

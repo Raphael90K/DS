@@ -5,6 +5,7 @@ import threading
 import time
 import log as lg
 from game import Game
+from logial_clock import LogicalClock
 
 from msg import receive_msg, send_msg
 
@@ -18,6 +19,8 @@ class Server:
         self.game = Game()
         self.DAUER_DER_RUNDE = DAUER_DER_RUNDE
         self.WARTEZEIT = 2
+
+        self.clock = LogicalClock()
 
     def serve(self, ip, port):
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s_sock:
@@ -34,7 +37,7 @@ class Server:
             while not stop_flag.is_set():
                 c_sock, c_address = s_sock.accept()
                 self.lock.acquire()
-                name, clock = receive_msg(c_sock, 10)
+                name = self.clock.receive_event(receive_msg, c_sock)
                 welcome = '<{0}> connected with IP <{1}> on Port <{2}>'.format(name, c_address[0], c_address[1])
                 print(welcome)
                 self.connected.append(c_sock)
@@ -45,7 +48,7 @@ class Server:
                 self.lock.release()
 
     def play_round(self):
-        while True:
+        while self.game.rnd < 26:
             self.lock.acquire()
             if len(self.connected) != 0:
                 # round start
@@ -70,7 +73,7 @@ class Server:
     def serve_client(self, c_sock, name):
         while True:
             try:
-                msg, clock = receive_msg(c_sock, 10)
+                msg = self.clock.receive_event(receive_msg, c_sock)
                 throw = int(msg.strip())
                 self.game.add_throw(name, throw)
             except Exception as e:
@@ -85,7 +88,7 @@ class Server:
     def server_send(self, msg, clock=0):
         for client in self.connected:
             try:
-                send_msg(client, msg, clock=clock)
+                self.clock.send_event(send_msg, client, msg)
             except Exception as e:
                 i = self.connected.index(client)
                 self.connected.remove(client)
