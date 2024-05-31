@@ -7,7 +7,7 @@ class Log:
     def __init__(self, LOGNAME, DAUER_DER_RUNDE):
         self.LOGNAME = LOGNAME
         self.log = {'starting_time': datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                    'round_duration': DAUER_DER_RUNDE,
+                    'round_duration' : DAUER_DER_RUNDE,
                     'rounds': []}
         self.rnd = {}
 

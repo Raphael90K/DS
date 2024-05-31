@@ -13,7 +13,7 @@ class Server:
     def __init__(self, DAUER_DER_RUNDE, LOGNAME):
         self.connected = []
         self.names = []
-        self.log = lg.Log(LOGNAME)
+        self.log = lg.Log(LOGNAME, DAUER_DER_RUNDE)
         self.lock = threading.Lock()
         self.game = Game()
         self.DAUER_DER_RUNDE = DAUER_DER_RUNDE
