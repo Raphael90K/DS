@@ -52,7 +52,7 @@ class Server:
             self.lock.acquire()
             if len(self.connected) != 0:
                 # round start
-                self.game.start_round(self.log, self.names)
+                self.game.start_round(self.log, self.names, self.clock.time)
                 self.server_send('start')
                 print(f'round: {self.game.rnd} - connected: {len(self.connected)} - start sended')
                 self.lock.release()
@@ -60,13 +60,13 @@ class Server:
 
                 # round end
                 self.lock.acquire()
-                winner = self.game.end_round(self.log)
+                winner = self.game.end_round(self.log, self.clock.time)
                 self.server_send('stop')
                 print(f'round: {self.game.rnd} - connected: {len(self.connected)} - end send')
 
                 # waiting for next round
                 time.sleep(self.WARTEZEIT)
-                self.game.await_next_round(self.log)
+                self.game.await_next_round(self.log, self.clock.time)
                 self.log.refresh()
             self.lock.release()
 

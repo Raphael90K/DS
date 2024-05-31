@@ -11,16 +11,19 @@ class Log:
                     'rounds': []}
         self.rnd = {}
 
-    def log_round_start(self, round_no, names: list):
+    def log_round_start(self, round_no, names: list, clock_time):
         self.rnd = {'round': round_no,
                     'starting_time': datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                    'logical_start' : clock_time,
                     'connected': copy.deepcopy(names)}
 
-    def log_late_throws(self, late):
+    def log_late_throws(self, late, clock_time):
         self.rnd['late_throws'] = copy.deepcopy(late)
+        self.rnd['logical_waiting_end'] = clock_time
 
-    def log_round_end(self, participants, winner):
+    def log_round_end(self, participants, winner, clock_time):
         self.rnd['ending_time'] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        self.rnd['logical_end'] = clock_time
         self.rnd['participants'] = copy.deepcopy(participants)
         self.rnd['winner'] = copy.deepcopy(winner)
 
