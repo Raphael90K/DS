@@ -85,7 +85,7 @@ class Server:
                 c_sock.close()
                 break
 
-    def server_send(self, msg, clock=0):
+    def server_send(self, msg):
         for client in self.connected:
             try:
                 self.clock.send_event(send_msg, client, msg)
@@ -96,7 +96,7 @@ class Server:
                 client.close()
                 print(f'error occured, client {client} removed')
 
-    def command(self, stop_flag: threading.Event, s_sock: socket.socket):
+    def command(self, stop_flag: threading.Event):
         while True:
             if input() == 'stop':
                 self.lock.acquire()
