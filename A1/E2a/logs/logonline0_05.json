@@ -1,5 +1,6 @@
 {
     "starting_time": "2024-05-31 16:43:00",
+    "round_duration": 0.05,
     "rounds": [
         {
             "round": 1,
