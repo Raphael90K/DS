@@ -12,6 +12,7 @@ from msg import receive_msg, send_msg
 
 class Server:
     def __init__(self, DAUER_DER_RUNDE, LOGNAME):
+
         self.connected = []
         self.names = []
         self.log = lg.Log(LOGNAME, DAUER_DER_RUNDE)
@@ -20,6 +21,7 @@ class Server:
         self.DAUER_DER_RUNDE = DAUER_DER_RUNDE
         self.WARTEZEIT = 2
 
+        self.client_start_time = {}
         self.clock = LogicalClock()
 
     def serve(self, ip, port):
@@ -31,16 +33,17 @@ class Server:
             rnd.start()
 
             stop_flag = threading.Event()
-            com = threading.Thread(target=self.command, args=(stop_flag, s_sock), daemon=True)
+            com = threading.Thread(target=self.command, args=(stop_flag,), daemon=True)
             com.start()
 
             while not stop_flag.is_set():
                 c_sock, c_address = s_sock.accept()
                 self.lock.acquire()
-                name = self.clock.receive_event(receive_msg, c_sock)
+                name, client_time = self.clock.receive_event(receive_msg, c_sock)
                 welcome = '<{0}> connected with IP <{1}> on Port <{2}>'.format(name, c_address[0], c_address[1])
                 print(welcome)
                 self.connected.append(c_sock)
+                self.client_start_time[c_sock] = self.clock.time
                 self.names.append(name.strip())
 
                 t = threading.Thread(target=self.serve_client, args=(c_sock, name), daemon=True)
@@ -48,7 +51,7 @@ class Server:
                 self.lock.release()
 
     def play_round(self):
-        while self.game.rnd < 26:
+        while True:
             self.lock.acquire()
             if len(self.connected) != 0:
                 # round start
