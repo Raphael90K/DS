@@ -8,10 +8,10 @@ def receive_msg(sock: socket.socket, length: int = 10):
         part = sock.recv(1)
         received += len(part)
         msg += part
-    clock = int.from_bytes(msg[:2])
+    msg_time = int.from_bytes(msg[:2])
     msg_decode = msg[2:].decode('ascii')
     msg_decode.strip()
-    return msg_decode, clock
+    return msg_decode, msg_time
 
 
 def send_msg(sock: socket.socket, msg: str, length: int = 10, clock=0):

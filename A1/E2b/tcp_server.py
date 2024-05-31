@@ -19,9 +19,9 @@ class Server:
         self.lock = threading.Lock()
         self.game = Game()
         self.DAUER_DER_RUNDE = DAUER_DER_RUNDE
-        self.WARTEZEIT = 2
 
-        self.client_start_time = {}
+        self.client_stop_time = {}
+        self.last_stop = 1000
         self.clock = LogicalClock()
 
     def serve(self, ip, port):
@@ -40,11 +40,12 @@ class Server:
                 c_sock, c_address = s_sock.accept()
                 self.lock.acquire()
                 name, client_time = self.clock.receive_event(receive_msg, c_sock)
+                name = name.strip()
                 welcome = '<{0}> connected with IP <{1}> on Port <{2}>'.format(name, c_address[0], c_address[1])
                 print(welcome)
                 self.connected.append(c_sock)
-                self.client_start_time[c_sock] = self.clock.time
-                self.names.append(name.strip())
+
+                self.names.append(name)
 
                 t = threading.Thread(target=self.serve_client, args=(c_sock, name), daemon=True)
                 t.start()
@@ -55,7 +56,7 @@ class Server:
             self.lock.acquire()
             if len(self.connected) != 0:
                 # round start
-                self.game.start_round(self.log, self.names, self.clock.time)
+                self.game.start_round(self.log, self.names)
                 self.server_send('start')
                 print(f'round: {self.game.rnd} - connected: {len(self.connected)} - start sended')
                 self.lock.release()
@@ -63,22 +64,24 @@ class Server:
 
                 # round end
                 self.lock.acquire()
-                winner = self.game.end_round(self.log, self.clock.time)
+                self.last_stop = self.clock.time + 1
+                self.game.end_round(self.log, self.last_stop)
                 self.server_send('stop')
                 print(f'round: {self.game.rnd} - connected: {len(self.connected)} - end send')
-
-                # waiting for next round
-                time.sleep(self.WARTEZEIT)
-                self.game.await_next_round(self.log, self.clock.time)
                 self.log.refresh()
             self.lock.release()
 
     def serve_client(self, c_sock, name):
         while True:
             try:
-                msg = self.clock.receive_event(receive_msg, c_sock)
+                msg, client_time = self.clock.receive_event(receive_msg, c_sock)
                 throw = int(msg.strip())
-                self.game.add_throw(name, throw)
+
+                # If the throw belongs to the actual round its clock is greater than the last ending clock
+                if client_time > self.last_stop:
+                    self.game.add_throw(name, throw)
+                else:
+                    self.log.log_late_throw(name, throw, client_time)
             except Exception as e:
                 print(e)
                 if c_sock in self.connected:
