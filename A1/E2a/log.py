@@ -4,7 +4,8 @@ import json
 
 
 class Log:
-    def __init__(self):
+    def __init__(self, LOGNAME):
+        self.LOGNAME = LOGNAME
         self.log = {'starting_time': datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"), 'rounds': []}
         self.rnd = {}
 
@@ -24,8 +25,9 @@ class Log:
     def refresh(self):
         self.log['rounds'].append(copy.deepcopy(self.rnd))
         self.rnd = {}
-    def create_log(self, file: str = 'log.json'):
+
+    def create_log(self):
         final_log = json.dumps(self.log, indent=4)
-        with open(file, 'w') as f:
+        with open(f'{self.LOGNAME}.json', 'w') as f:
             f.write(final_log)
         print('log created')

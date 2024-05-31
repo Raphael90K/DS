@@ -10,10 +10,10 @@ from msg import receive_msg, send_msg
 
 
 class Server:
-    def __init__(self, DAUER_DER_RUNDE):
+    def __init__(self, DAUER_DER_RUNDE, LOGNAME):
         self.connected = []
         self.names = []
-        self.log = lg.Log()
+        self.log = lg.Log(LOGNAME)
         self.lock = threading.Lock()
         self.game = Game()
         self.DAUER_DER_RUNDE = DAUER_DER_RUNDE
@@ -113,12 +113,14 @@ class Server:
 
 
 def main():
-    if len(sys.argv) != 3:
-        print("Usage for Server: \"{0}  <port> <DAUER_DER_RUNDE>\"".format(sys.argv[0]))
+    if len(sys.argv) != 5:
+        print("Usage for Server: \"{0}  <ip> <port> <DAUER_DER_RUNDE> <LOGNAME>\"".format(sys.argv[0]))
         sys.exit()
-    port = int(sys.argv[1])
-    server = Server(float(sys.argv[2]))
-    server.serve('127.0.0.1', port)
+    ip = sys.argv[1]
+    port = int(sys.argv[2])
+    server = Server(float(sys.argv[3]), sys.argv[4])
+
+    server.serve(ip, port)
 
 
 if __name__ == '__main__':

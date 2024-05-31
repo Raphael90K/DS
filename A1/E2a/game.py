@@ -31,6 +31,5 @@ class Game:
 
     def await_next_round(self, log: Log):
         with self.lock:
-            if len(self.throws) > 0:
-                log.log_late_throws(self.throws)
-                self.throws = []
+            log.log_late_throws(self.throws)
+            self.throws = []
