@@ -63,12 +63,15 @@ class Server:
                 self.server_send('start')
                 print(f'round: {self.game.rnd} - connected: {len(self.connected)} - start sended')
                 self.lock.release()
+
+                # waiting time
                 time.sleep(self.DAUER_DER_RUNDE)
 
                 # round end
                 self.lock.acquire()
                 self.last_stop = self.clock.time + 1
                 self.game.end_round(self.log, self.last_stop)
+                self.last_start = self.last_stop + 1
                 self.server_send('stop')
                 print(f'round: {self.game.rnd} - connected: {len(self.connected)} - end send')
                 self.log.refresh()
@@ -81,10 +84,11 @@ class Server:
                 throw = int(msg.strip())
 
                 # If the throw belongs to the actual round its clock is greater than the last ending clock
-                if client_time > self.last_start:
-                    self.game.add_throw(name, throw, client_time)
-                else:
-                    self.log.log_late_throw(name, throw, client_time)
+                with self.lock:
+                    if client_time > self.last_start:
+                        self.game.add_throw(name, throw, client_time)
+                    else:
+                        self.log.log_late_throw(name, throw, client_time)
             except Exception as e:
                 print(e)
                 if c_sock in self.connected:
