@@ -16,7 +16,6 @@ class LogicalClock:
 
     def receive_event(self, receive_function, *args):
             msg, client_time = receive_function(*args)
-            print(client_time)
             with self.lock:
                 self.time = max(client_time, self.time) + 1
             return msg, client_time

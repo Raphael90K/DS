@@ -51,7 +51,7 @@ class Client:
         if not stop_received.is_set():
             send_msg(self.c, WURF)
         else:
-            print(f'{threading.current_thread()}too late')
+            print(f'{threading.current_thread()} too late')
 
 
 def main():
