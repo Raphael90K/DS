@@ -1,6 +1,6 @@
 import threading
 
-from A1.E2a.log import Log
+from log import Log
 
 
 class Game:
