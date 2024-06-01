@@ -27,9 +27,9 @@ class Game:
         with self.lock:
             return self.last_end
 
-    def add_throw(self, name, score, client_time):
+    def add_throw(self, name, throw, client_time):
         with self.lock:
-            self.throws.append([name, score, client_time])
+            self.throws.append([name, throw, client_time])
 
     def start_round(self, log: Log, names, time):
         with self.lock:
