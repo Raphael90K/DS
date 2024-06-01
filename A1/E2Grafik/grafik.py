@@ -27,7 +27,7 @@ def process_json_file(json_file_path):
     plt.title(file_name)
     plt.xlabel('Runde')
     plt.ylabel('Anzahl')
-    plt.legend()
+    plt.legend(loc='center right')
 
     output_file_path = f'{file_name}.png'
     plt.savefig(output_file_path)
@@ -41,6 +41,6 @@ def process_all_json_files(directory):
             process_json_file(json_file_path)
 
 
-json_directory = 'C:\\Users\\rapha\\PycharmProjects\\DS\\A1\\E2c\\logs'
+json_directory = 'C:\\Users\\rapha\\PycharmProjects\\DS\\A1\\E2a\\logs'
 
 process_all_json_files(json_directory)
