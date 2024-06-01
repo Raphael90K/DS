@@ -48,11 +48,10 @@ class Client:
     def roll_dice(self, stop_received: threading.Event):
         time.sleep(rand.random() * self.LATENZ)
         WURF = str(rand.randint(0, 100))
-        print(f' {threading.current_thread()} : {stop_received.is_set()}')
         if not stop_received.is_set():
             send_msg(self.c, WURF)
         else:
-            print('too late')
+            print(f'{threading.current_thread()}too late')
 
 
 def main():
