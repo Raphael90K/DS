@@ -22,8 +22,6 @@ class Server:
         self.DAUER_DER_RUNDE = DAUER_DER_RUNDE
 
         self.client_stop_time = {}
-        self.last_start = 0
-        self.last_stop = 1000
         self.clock = LogicalClock()
 
     def serve(self, ip, port):
@@ -58,8 +56,8 @@ class Server:
             self.lock.acquire()
             if len(self.connected) != 0:
                 # round start
-                self.last_start = self.clock.time
-                self.game.start_round(self.log, self.names)
+                self.game.increase_start(self.clock.time + 1)
+                self.game.start_round(self.log, self.names, self.game.get_last_start())
                 self.server_send('start')
                 print(f'round: {self.game.rnd} - connected: {len(self.connected)} - start sended')
                 self.lock.release()
@@ -69,11 +67,11 @@ class Server:
 
                 # round end
                 self.lock.acquire()
-                self.last_stop = self.clock.time + 1
-                self.game.end_round(self.log, self.last_stop)
-                self.last_start = self.last_stop + 1
+                self.game.increase_end(self.clock.time + 1)
+                self.game.increase_end(self.game.get_last_end() + 1)
                 self.server_send('stop')
                 print(f'round: {self.game.rnd} - connected: {len(self.connected)} - end send')
+                self.game.end_round(self.log, self.game.get_last_end())
                 self.log.refresh()
             self.lock.release()
 
@@ -85,7 +83,7 @@ class Server:
 
                 # If the throw belongs to the actual round its clock is greater than the last ending clock
                 with self.lock:
-                    if client_time > self.last_start:
+                    if client_time > self.game.get_last_start():
                         self.game.add_throw(name, throw, client_time)
                     else:
                         self.log.log_late_throw(name, throw, client_time)
