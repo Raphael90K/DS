@@ -19,7 +19,8 @@ class Log:
     def log_late_throw(self, name, throw, client_time):
         for i, rnd in enumerate(self.log['rounds']):
             if client_time <= rnd['logical_ending']:
-                self.log['rounds'][i]['late_throws'].append([name, throw])
+                self.log['rounds'][i]['late_throws'].append([name, throw, client_time])
+                break
 
     def log_round_end(self, participants, winner, round_end_time):
         self.rnd['ending_time'] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")

@@ -13,6 +13,7 @@ from msg import receive_msg, send_msg
 class Server:
     def __init__(self, DAUER_DER_RUNDE, LOGNAME):
 
+
         self.connected = []
         self.names = []
         self.log = lg.Log(LOGNAME, DAUER_DER_RUNDE)
@@ -21,6 +22,7 @@ class Server:
         self.DAUER_DER_RUNDE = DAUER_DER_RUNDE
 
         self.client_stop_time = {}
+        self.last_start = 0
         self.last_stop = 1000
         self.clock = LogicalClock()
 
@@ -56,6 +58,7 @@ class Server:
             self.lock.acquire()
             if len(self.connected) != 0:
                 # round start
+                self.last_start = self.clock.time
                 self.game.start_round(self.log, self.names)
                 self.server_send('start')
                 print(f'round: {self.game.rnd} - connected: {len(self.connected)} - start sended')
@@ -78,8 +81,8 @@ class Server:
                 throw = int(msg.strip())
 
                 # If the throw belongs to the actual round its clock is greater than the last ending clock
-                if client_time > self.last_stop:
-                    self.game.add_throw(name, throw)
+                if client_time > self.last_start:
+                    self.game.add_throw(name, throw, client_time)
                 else:
                     self.log.log_late_throw(name, throw, client_time)
             except Exception as e:

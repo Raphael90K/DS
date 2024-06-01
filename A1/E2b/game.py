@@ -9,9 +9,9 @@ class Game:
         self.rnd = 0
         self.throws = []  # [[name, throw]]
 
-    def add_throw(self, name, score):
+    def add_throw(self, name, score, client_time):
         with self.lock:
-            self.throws.append([name, score])
+            self.throws.append([name, score, client_time])
 
     def start_round(self, log: Log, names):
         with self.lock:
